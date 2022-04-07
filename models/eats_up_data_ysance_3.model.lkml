@@ -53,6 +53,12 @@ view: full_data {
     type:string
     map_layer_name: countries}
   dimension: pageviews {type:string}
+
+  measure: id_count { # Base measure #1
+    type: count_distinct
+    sql: ${id} ;;
+  }
+
 }
 
 explore: training_input {}
@@ -121,10 +127,14 @@ view: model_prediction {
           (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
   }
 
-  dimension: Predicted_will_purchase {type:number}
+  dimension: Predicted_will_purchase {type:string}
   dimension: id {
     type: number
     hidden:yes}
+  measure: id_count{
+    type: count_distinct
+    sql: ${id} ;;
+  }
 
 }
 
