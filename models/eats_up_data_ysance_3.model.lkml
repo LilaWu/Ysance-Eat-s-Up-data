@@ -53,6 +53,11 @@ view: full_data {
     type:string
     map_layer_name: countries}
   dimension: pageviews {type:string}
+
+  measure: id_count { # Base measure #1
+    type: count_distinct
+    sql: ${id} ;;
+  }
 }
 
 explore: training_input {}
