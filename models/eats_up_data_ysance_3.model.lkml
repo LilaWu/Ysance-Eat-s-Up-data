@@ -26,13 +26,13 @@ view: full_data {
   derived_table:{
     sql:
        SELECT
-          IF(totals.transactions IS NULL, 0, 1) AS Predicted_will_purchase,
-          IFNULL(device.operatingSystem, "") AS OS,
-          device.isMobile AS Is_mobile,
-          IFNULL(geoNetwork.country, "") AS Country,
-          IFNULL(totals.pageviews, 0) AS Pageviews,
-          date AS Date,
-          fullvisitorid AS ID
+          IF(totals.transactions IS NULL, 0, 1) AS predicted_will_purchase,
+          IFNULL(device.operatingSystem, "") AS os,
+          device.isMobile AS is_mobile,
+          IFNULL(geoNetwork.country, "") AS country,
+          IFNULL(totals.pageviews, 0) AS pageviews,
+          date AS date,
+          fullvisitorid AS id
         FROM
           `bigquery-public-data.google_analytics_sample.ga_sessions_*`
         WHERE
@@ -43,13 +43,13 @@ view: full_data {
 
   dimension: id {}
 
-  dimension: Predicted_will_purchase {
+  dimension: predicted_will_purchase {
     label: "Did purchase or not"
   }
 
-  dimension: OS {type:string}
-  dimension: Is_mobile {type:string}
-  dimension: Country {
+  dimension: os {type:string}
+  dimension: is_mobile {type:string}
+  dimension: country {
     type:string
     map_layer_name: countries}
   dimension: pageviews {type:string}
@@ -129,13 +129,22 @@ view: model_prediction {
 
   dimension: predicted_will_purchase {type:string}
   dimension: id {
-    type: number
-    hidden:yes}
+    type: string}
+  dimension: country {
+    type:string
+    map_layer_name: countries
+  }
+  dimension: os {}
+  dimension: is_mobile {}
   measure: id_count{
     type: count_distinct
     sql: ${id} ;;
   }
-
+  dimension: pageviews {}
+  measure: pageviews_sum {
+    type: sum
+    sql: ${pageviews} ;;
+  }
 }
 
 
@@ -153,8 +162,9 @@ view: transaction_by_country {
            ORDER BY total_predicted_purchases DESC));;
   }
   dimension: predicted_will_purchase {type:number}
-  dimension: Country {
+  dimension: country {
     type:string
     map_layer_name: countries}
-  dimension: Total_predicted_purchases {type:number}
+  dimension: total_predicted_purchases {type:number}
+
 }
