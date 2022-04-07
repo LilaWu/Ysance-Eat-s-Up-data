@@ -134,7 +134,7 @@ view: transaction_by_country {
   derived_table: {
     sql:
         SELECT
-          country,
+          Country,
           SUM(predicted_label) as Total_predicted_purchases
         FROM
           ML.PREDICT(MODEL ${future_purchase_model.SQL_TABLE_NAME},
