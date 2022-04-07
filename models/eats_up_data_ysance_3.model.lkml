@@ -26,13 +26,13 @@ view: full_data {
   derived_table:{
     sql:
        SELECT
-          IF(totals.transactions IS NULL, 0, 1) AS predicted_will_purchase,
-          IFNULL(device.operatingSystem, "") AS os,
-          device.isMobile AS is_mobile,
-          IFNULL(geoNetwork.country, "") AS country,
-          IFNULL(totals.pageviews, 0) AS pageviews,
-          date,
-          fullvisitorid AS id
+          IF(totals.transactions IS NULL, 0, 1) AS Predicted_will_purchase,
+          IFNULL(device.operatingSystem, "") AS OS,
+          device.isMobile AS Is_mobile,
+          IFNULL(geoNetwork.country, "") AS Country,
+          IFNULL(totals.pageviews, 0) AS Pageviews,
+          date AS Date,
+          fullvisitorid AS ID
         FROM
           `bigquery-public-data.google_analytics_sample.ga_sessions_*`
         WHERE
@@ -43,13 +43,13 @@ view: full_data {
 
   dimension: id {}
 
-  dimension: predicted_will_purchase {
+  dimension: Predicted_will_purchase {
     label: "Did purchase or not"
   }
 
-  dimension: os {type:string}
-  dimension: is_mobile {type:string}
-  dimension: country {
+  dimension: OS {type:string}
+  dimension: Is_mobile {type:string}
+  dimension: Country {
     type:string
     map_layer_name: countries}
   dimension: pageviews {type:string}
@@ -126,4 +126,25 @@ view: model_prediction {
     type: number
     hidden:yes}
 
+}
+
+
+explore: transaction_by_country {}:
+view: transaction_by_country {
+  derived_table: {
+    sql:
+        SELECT
+          country,
+          SUM(predicted_label) as Total_predicted_purchases
+        FROM
+          ML.PREDICT(MODEL ${future_purchase_model.SQL_TABLE_NAME},
+          (SELECT * FROM ${full_data.SQL_TABLE_NAME}
+           GROUP BY country
+           ORDER BY total_predicted_purchases DESC));;
+  }
+  dimension: predicted_will_purchase {type:number}
+  dimension: Country {
+    type:string
+    map_layer_name: countries}
+  dimension: Total_predicted_purchases {type:number}
 }
