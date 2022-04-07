@@ -36,7 +36,7 @@ view: full_data {
         FROM
           `bigquery-public-data.google_analytics_sample.ga_sessions_*`
         WHERE
-          _TABLE_SUFFIX BETWEEN '20160801' AND '20170630'
+          _TABLE_SUFFIX BETWEEN '20160801' AND '20170801'
         ;;
   }
 
@@ -56,14 +56,14 @@ view: full_data {
 explore: training_input {}
 view: training_input {
   derived_table: {
-    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20160801' AND '20170430';;
+    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20160801' AND '20170630';;
   }
 }
 
 explore: testing_input {}
 view: testing_input {
   derived_table: {
-    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20170501' AND '20170630' ;;
+    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20170701' AND '20170801' ;;
   }
 }
 
