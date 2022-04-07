@@ -44,6 +44,7 @@ view: full_data {
   dimension: id {}
 
   dimension: predicted_will_purchase {
+    type: string
     label: "Did purchase or not"
   }
 
