@@ -76,7 +76,7 @@ view: future_purchase_model {
     sql_create:
       CREATE OR REPLACE MODEL ${SQL_TABLE_NAME}
       OPTIONS(model_type='logistic_reg'
-        , labels=['predicted_will_purchase']
+        , labels=['Predicted_will_purchase']
         , min_rel_progress = 0.005
         , max_iterations = 40
         ) AS
@@ -121,7 +121,7 @@ view: model_prediction {
           (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
   }
 
-  dimension: predicted_will_purchase {type:number}
+  dimension: Predicted_will_purchase {type:number}
   dimension: id {
     type: number
     hidden:yes}
@@ -133,16 +133,14 @@ explore: transaction_by_country {}:
 view: transaction_by_country {
   derived_table: {
     sql:
-        SELECT
-          Country,
-          SUM(predicted_label) as Total_predicted_purchases
+        SELECT *
         FROM
           ML.PREDICT(MODEL ${future_purchase_model.SQL_TABLE_NAME},
           (SELECT * FROM ${full_data.SQL_TABLE_NAME}
-           GROUP BY country
-           ORDER BY total_predicted_purchases DESC));;
+           GROUP BY Country
+           ORDER BY Total_predicted_purchases DESC));;
   }
-  dimension: predicted_will_purchase {type:number}
+  dimension: Predicted_will_purchase {type:number}
   dimension: Country {
     type:string
     map_layer_name: countries}
