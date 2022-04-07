@@ -82,7 +82,7 @@ view: future_purchase_model {
     sql_create:
       CREATE OR REPLACE MODEL ${SQL_TABLE_NAME}
       OPTIONS(model_type='logistic_reg'
-        , labels=['predicted_will_purchase']
+        , labels=['Predicted_will_purchase']
         , min_rel_progress = 0.005
         , max_iterations = 40
         ) AS
@@ -127,7 +127,7 @@ view: model_prediction {
           (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
   }
 
-  dimension: predicted_will_purchase {type:string}
+  dimension: Predicted_will_purchase {type:string}
   dimension: id {
     type: string}
   dimension: country {
@@ -144,5 +144,5 @@ view: model_prediction {
   measure: pageviews_sum {
     type: sum
     sql: ${pageviews} ;;
-  }
+
 }
