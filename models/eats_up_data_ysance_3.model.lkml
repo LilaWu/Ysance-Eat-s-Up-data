@@ -58,6 +58,7 @@ view: full_data {
     type: count_distinct
     sql: ${id} ;;
   }
+
 }
 
 explore: training_input {}
@@ -126,7 +127,7 @@ view: model_prediction {
           (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
   }
 
-  dimension: predicted_will_purchase {type:number}
+  dimension: predicted_will_purchase {type:string}
   dimension: id {
     type: number
     hidden:yes}
