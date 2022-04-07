@@ -12,7 +12,6 @@ datagroup: eats_up_data_ysance_3_default_datagroup {
 
 persist_with: eats_up_data_ysance_3_default_datagroup
 
-
 explore: full_data {
   label: "Data and Prediction"
   join: model_prediction {
@@ -54,18 +53,21 @@ view: full_data {
   dimension: pageviews {type:string}
 }
 
+explore: training_input {}
 view: training_input {
   derived_table: {
     sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20160801' AND '20170430';;
   }
 }
 
+explore: testing_input {}
 view: testing_input {
   derived_table: {
     sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20170501' AND '20170630' ;;
   }
 }
 
+explore: future_purchase_model {}:
 view: future_purchase_model {
   derived_table: {
     persist_for: "24 hours" # need to have persistence
@@ -83,7 +85,6 @@ view: future_purchase_model {
 }
 
 explore: model_evaluation {}
-
 view: model_evaluation {
   derived_table: {
     sql: SELECT
@@ -110,6 +111,7 @@ view: model_evaluation {
 }
 
 
+explore: model_prediction {}:
 view: model_prediction {
   derived_table: {
     sql: SELECT * FROM ML.PREDICT(
