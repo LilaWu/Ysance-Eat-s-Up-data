@@ -143,6 +143,6 @@ view: model_prediction {
   dimension: pageviews {}
   measure: pageviews_sum {
     type: sum
-    sql: ${pageviews} ;;
+    sql: ${pageviews} ;;}
 
 }
