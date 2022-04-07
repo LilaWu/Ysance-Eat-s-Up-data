@@ -127,7 +127,7 @@ view: model_prediction {
           (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
   }
 
-  dimension: Predicted_will_purchase {type:string}
+  dimension: predicted_will_purchase {type:string}
   dimension: id {
     type: string}
   dimension: country {
