@@ -49,7 +49,9 @@ view: full_data {
 
   dimension: os {type:string}
   dimension: is_mobile {type:string}
-  dimension: country {type:string}
+  dimension: country {
+    type:string
+    map_layer_name: countries}
   dimension: pageviews {type:string}
 }
 
