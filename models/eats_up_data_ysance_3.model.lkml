@@ -131,5 +131,9 @@ view: model_prediction {
   dimension: id {
     type: number
     hidden:yes}
+  measure: id_count{
+    type: count_distinct
+    sql: ${id} ;;
+  }
 
 }
