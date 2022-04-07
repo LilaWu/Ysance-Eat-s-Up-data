@@ -26,7 +26,7 @@ view: full_data {
   derived_table:{
     sql:
        SELECT
-          IF(totals.transactions IS NULL, 0, 1) AS predicted_will_purchase,
+          IF(totals.transactions IS NULL, "0", "1") AS predicted_will_purchase,
           IFNULL(device.operatingSystem, "") AS os,
           device.isMobile AS is_mobile,
           IFNULL(geoNetwork.country, "") AS country,
