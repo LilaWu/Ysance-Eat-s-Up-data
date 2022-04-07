@@ -146,25 +146,3 @@ view: model_prediction {
     sql: ${pageviews} ;;
   }
 }
-
-
-explore: transaction_by_country {}:
-view: transaction_by_country {
-  derived_table: {
-    sql:
-        SELECT
-          Country,
-          SUM(predicted_label) as Total_predicted_purchases
-        FROM
-          ML.PREDICT(MODEL ${future_purchase_model.SQL_TABLE_NAME},
-          (SELECT * FROM ${full_data.SQL_TABLE_NAME}
-           GROUP BY country
-           ORDER BY total_predicted_purchases DESC));;
-  }
-  dimension: predicted_will_purchase {type:number}
-  dimension: country {
-    type:string
-    map_layer_name: countries}
-  dimension: total_predicted_purchases {type:number}
-
-}
