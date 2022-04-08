@@ -11,30 +11,7 @@ datagroup: eats_up_data_ysance_3_default_datagroup {
 
 persist_with: eats_up_data_ysance_3_default_datagroup
 
-explore: full_data {
-  label: "Data and Prediction"
-  join: model_prediction_log_reg {
-    relationship: one_to_one
-    type: inner
-    sql_on: ${model_prediction_log_reg.id} = ${full_data.id} ;;
-  }
-  join: model_prediction_tree_xgboost {
-    relationship: one_to_one
-    type: inner
-    sql_on: ${model_prediction_tree_xgboost.id} = ${full_data.id} ;;
-  }
-  join: model_prediction_dnn_classifier {
-    relationship: one_to_one
-    type: inner
-    sql_on: ${model_prediction_dnn_classifier.id} = ${full_data.id} ;;
-  }
-  join: model_prediction_automl_classifier{
-    relationship: one_to_one
-    type: inner
-    sql_on: ${model_prediction_automl_classifier.id} = ${full_data.id} ;;
-  }
-}
-
+explore: full_data {}
 view: full_data {
   derived_table:{
     sql:
@@ -74,25 +51,119 @@ view: full_data {
   }
 }
 
-explore: training_input {}
+
+explore: training_input {
+  label: "Training Info"
+  join: future_purchase_model_training_info_log_reg {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${future_purchase_model_training_info_log_reg.id} = ${training_input.id} ;;
+  }
+  join: future_purchase_model_training_info_tree_xgboost {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${future_purchase_model_training_info_tree_xgboost.id} = ${training_input.id} ;;
+  }
+  join: future_purchase_model_training_info_dnn_classifier {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${future_purchase_model_training_info_dnn_classifier.id} = ${training_input.id} ;;
+  }
+  join: future_purchase_model_training_info_automl_classifier{
+    relationship: one_to_one
+    type: inner
+    sql_on: ${future_purchase_model_training_info_automl_classifier.id} = ${training_input.id} ;;
+  }
+}
+
 view: training_input {
   derived_table: {
     sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20160801' AND '20170130';;
   }
+  dimension: id {}
 }
 
-explore: testing_input {}
+explore: testing_input {
+  label: "Evaluation and Roc Curve"
+  join: model_evaluation_log_reg {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_evaluation_log_reg.id} = ${testing_input.id} ;;
+  }
+  join: model_evaluation_tree_xgboost {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_evaluation_tree_xgboost.id} = ${testing_input.id} ;;
+  }
+  join: model_evaluation_dnn_classifier {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_evaluation_dnn_classifier.id} = ${testing_input.id} ;;
+  }
+  join: model_evaluation_automl_classifier{
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_evaluation_automl_classifier.id} = ${testing_input.id} ;;
+  }
+  join: roc_curve_log_reg {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${roc_curve_log_reg.id} = ${testing_input.id} ;;
+  }
+  join: roc_curve_tree_xgboost {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${roc_curve_tree_xgboost.id} = ${testing_input.id} ;;
+  }
+  join: roc_curve_dnn_classifier {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${roc_curve_dnn_classifier.id} = ${testing_input.id} ;;
+  }
+  join: roc_curve_automl_classifier{
+    relationship: one_to_one
+    type: inner
+    sql_on: ${roc_curve_automl_classifier.id} = ${testing_input.id} ;;
+  }
+}
+
+
 view: testing_input {
   derived_table: {
     sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20170201' AND '20170228' ;;
   }
+  dimension: id {}
 }
 
-explore: predict_input {}
+explore: predict_input {
+  label: "Data and Prediction"
+  join: model_prediction_log_reg {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_prediction_log_reg.id} = ${predict_input.id} ;;
+  }
+  join: model_prediction_tree_xgboost {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_prediction_tree_xgboost.id} = ${predict_input.id} ;;
+  }
+  join: model_prediction_dnn_classifier {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_prediction_dnn_classifier.id} = ${predict_input.id} ;;
+  }
+  join: model_prediction_automl_classifier{
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_prediction_automl_classifier.id} = ${predict_input.id} ;;
+  }
+}
+
 view: predict_input {
   derived_table: {
     sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20170301' AND '20170401' ;;
   }
+  dimension: id {}
 }
 
 ##################################################
@@ -137,6 +208,8 @@ view: model_evaluation_log_reg {
               ELSE 'poor' END AS model_accuracy,
          FROM ML.EVALUATE(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
+  dimension: id {
+    type: string}
   dimension: model_quality {}
   dimension: iteration {}
   dimension: fi_score {}
@@ -208,6 +281,8 @@ view: roc_curve_log_reg {
       icon_url: "http://www.looker.com/favicon.ico"
     }
   }
+  dimension: id {
+    type: string}
   dimension: recall {type: number value_format_name: percent_2}
   dimension: false_positive_rate {type: number}
   dimension: true_positives {type: number }
@@ -243,8 +318,11 @@ view: roc_curve_log_reg {
 explore: future_purchase_model_training_info_log_reg {}
 view: future_purchase_model_training_info_log_reg {
   derived_table: {
-    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME});;
+    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},
+          (SELECT * FROM ${training_input.SQL_TABLE_NAME}));;
   }
+  dimension: id {
+    type: string}
   dimension: training_run {type: number}
   dimension: iteration {type: number}
   dimension: loss_raw {sql: ${TABLE}.loss;; type: number hidden:yes}
@@ -319,6 +397,8 @@ view: model_evaluation_tree_xgboost {
               ELSE 'poor' END AS model_accuracy,
          FROM ML.EVALUATE(MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
+  dimension: id {
+    type: string}
   dimension: model_quality {}
   dimension: accuracy {type: number value_format_name:percent_2}
   dimension: log_loss {type: number}
@@ -376,6 +456,8 @@ view: roc_curve_tree_xgboost {
         MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME},
         (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
   }
+  dimension: id {
+    type: string}
   dimension: threshold {
     type: number
     value_format_name: decimal_4
@@ -408,6 +490,42 @@ view: roc_curve_tree_xgboost {
     type: number
     value_format_name: percent_2
     sql:  1.0*(${true_positives} + ${true_negatives}) / NULLIF((${true_positives} + ${true_negatives} + ${false_positives} + ${false_negatives}),0);;
+  }
+}
+
+explore: future_purchase_model_training_info_tree_xgboost {}
+view: future_purchase_model_training_info_tree_xgboost {
+  derived_table: {
+    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME},
+          (SELECT * FROM ${training_input.SQL_TABLE_NAME}));;
+  }
+  dimension: id {
+    type: string}
+  dimension: training_run {type: number}
+  dimension: iteration {type: number}
+  dimension: loss_raw {sql: ${TABLE}.loss;; type: number hidden:yes}
+  dimension: eval_loss {type: number}
+  dimension: duration_ms {label:"Duration (ms)" type: number}
+  dimension: learning_rate {type: number}
+  measure: total_iterations {
+    type: count
+  }
+  measure: loss {
+    value_format_name: decimal_2
+    type: sum
+    sql:  ${loss_raw} ;;
+  }
+  measure: total_training_time {
+    type: sum
+    label:"Total Training Time (sec)"
+    sql: ${duration_ms}/1000 ;;
+    value_format_name: decimal_1
+  }
+  measure: average_iteration_time {
+    type: average
+    label:"Average Iteration Time (sec)"
+    sql: ${duration_ms}/1000 ;;
+    value_format_name: decimal_1
   }
 }
 
@@ -459,6 +577,8 @@ view: model_evaluation_dnn_classifier {
               ELSE 'poor' END AS model_accuracy,
          FROM ML.EVALUATE(MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
+  dimension: id {
+    type: string}
   dimension: model_quality {}
   dimension: iteration {}
   dimension: fi_score {}
@@ -520,6 +640,8 @@ view: roc_curve_dnn_classifier {
         MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},
         (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
   }
+  dimension: id {
+    type: string}
   dimension: threshold {
     type: number
     value_format_name: decimal_4
@@ -560,6 +682,44 @@ view: roc_curve_dnn_classifier {
     sql: 2.0*${recall}*${precision} / NULLIF((${recall}+${precision}),0);;
   }
 }
+
+explore: future_purchase_model_training_info_dnn_classifier {}
+view: future_purchase_model_training_info_dnn_classifier {
+  derived_table: {
+    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},
+          (SELECT * FROM ${training_input.SQL_TABLE_NAME}));;
+  }
+  dimension: id {
+    type: string}
+  dimension: training_run {type: number}
+  dimension: iteration {type: number}
+  dimension: loss_raw {sql: ${TABLE}.loss;; type: number hidden:yes}
+  dimension: eval_loss {type: number}
+  dimension: duration_ms {label:"Duration (ms)" type: number}
+  dimension: learning_rate {type: number}
+  measure: total_iterations {
+    type: count
+  }
+  measure: loss {
+    value_format_name: decimal_2
+    type: sum
+    sql:  ${loss_raw} ;;
+  }
+  measure: total_training_time {
+    type: sum
+    label:"Total Training Time (sec)"
+    sql: ${duration_ms}/1000 ;;
+    value_format_name: decimal_1
+  }
+  measure: average_iteration_time {
+    type: average
+    label:"Average Iteration Time (sec)"
+    sql: ${duration_ms}/1000 ;;
+    value_format_name: decimal_1
+  }
+}
+
+
 
 ##################################################
 # ML 3 : AUTOML CLASSIFIER
@@ -608,6 +768,8 @@ view: model_evaluation_automl_classifier {
               ELSE 'poor' END AS model_accuracy,
          FROM ML.EVALUATE(MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
+  dimension: id {
+    type: string}
   dimension: model_quality {}
   dimension: iteration {}
   dimension: fi_score {}
@@ -669,6 +831,8 @@ view: roc_curve_automl_classifier {
         MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},
         (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
   }
+  dimension: id {
+    type: string}
   dimension: threshold {
     type: number
     value_format_name: decimal_4
@@ -707,5 +871,41 @@ view: roc_curve_automl_classifier {
     type: number
     value_format_name: percent_3
     sql: 2.0*${recall}*${precision} / NULLIF((${recall}+${precision}),0);;
+  }
+}
+
+explore: future_purchase_model_training_info_automl_classifier {}
+view: future_purchase_model_training_info_automl_classifier {
+  derived_table: {
+    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},
+          (SELECT * FROM ${training_input.SQL_TABLE_NAME}));;
+  }
+  dimension: id {
+    type: string}
+  dimension: training_run {type: number}
+  dimension: iteration {type: number}
+  dimension: loss_raw {sql: ${TABLE}.loss;; type: number hidden:yes}
+  dimension: eval_loss {type: number}
+  dimension: duration_ms {label:"Duration (ms)" type: number}
+  dimension: learning_rate {type: number}
+  measure: total_iterations {
+    type: count
+  }
+  measure: loss {
+    value_format_name: decimal_2
+    type: sum
+    sql:  ${loss_raw} ;;
+  }
+  measure: total_training_time {
+    type: sum
+    label:"Total Training Time (sec)"
+    sql: ${duration_ms}/1000 ;;
+    value_format_name: decimal_1
+  }
+  measure: average_iteration_time {
+    type: average
+    label:"Average Iteration Time (sec)"
+    sql: ${duration_ms}/1000 ;;
+    value_format_name: decimal_1
   }
 }
