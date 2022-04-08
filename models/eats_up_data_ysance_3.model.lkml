@@ -37,7 +37,7 @@ view: full_data {
     type: string
     label: "Did purchase or not"
   }
-
+  dimension: date {type:date}
   dimension: os {type:string}
   dimension: is_mobile {type:string}
   dimension: country {
@@ -74,16 +74,20 @@ explore: training_input {
     type: inner
     sql_on: ${future_purchase_model_training_info_automl_classifier.id} = ${training_input.id} ;;
   }
+  join: full_data {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${full_data.id} = ${training_input.id} ;;
+  }
+
 }
 
 view: training_input {
   derived_table: {
-    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20160801' AND '20170130';;
+    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME}
+    WHERE date BETWEEN '20160801' AND '20170130';;
   }
   dimension: id {}
-  filter: date {
-    type: string
-  }
 }
 
 explore: testing_input {
