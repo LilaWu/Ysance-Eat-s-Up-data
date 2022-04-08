@@ -52,35 +52,34 @@ view: full_data {
 }
 
 
-explore: training_input {
-  label: "Training Info"
-  join: future_purchase_model_training_info_log_reg {
-    relationship: one_to_one
-    type: inner
-    sql_on: ${future_purchase_model_training_info_log_reg.id} = ${training_input.id} ;;
-  }
-  join: future_purchase_model_training_info_tree_xgboost {
-    relationship: one_to_one
-    type: inner
-    sql_on: ${future_purchase_model_training_info_tree_xgboost.id} = ${training_input.id} ;;
-  }
-  join: future_purchase_model_training_info_dnn_classifier {
-    relationship: one_to_one
-    type: inner
-    sql_on: ${future_purchase_model_training_info_dnn_classifier.id} = ${training_input.id} ;;
-  }
-  join: future_purchase_model_training_info_automl_classifier{
-    relationship: one_to_one
-    type: inner
-    sql_on: ${future_purchase_model_training_info_automl_classifier.id} = ${training_input.id} ;;
-  }
-  join: full_data {
-    relationship: one_to_one
-    type: inner
-    sql_on: ${full_data.id} = ${training_input.id} ;;
-  }
-
-}
+#explore: training_input {
+#  label: "Training Info"
+#  join: future_purchase_model_training_info_log_reg {
+#    relationship: one_to_one
+#    type: inner
+#    sql_on: ${future_purchase_model_training_info_log_reg.id} = ${training_input.id} ;;
+#  }
+#  join: future_purchase_model_training_info_tree_xgboost {
+#    relationship: one_to_one
+#    type: inner
+#    sql_on: ${future_purchase_model_training_info_tree_xgboost.id} = ${training_input.id} ;;
+#  }
+#  join: future_purchase_model_training_info_dnn_classifier {
+#    relationship: one_to_one
+#    type: inner
+#    sql_on: ${future_purchase_model_training_info_dnn_classifier.id} = ${training_input.id} ;;
+#  }
+#  join: future_purchase_model_training_info_automl_classifier{
+#    relationship: one_to_one
+#    type: inner
+#    sql_on: ${future_purchase_model_training_info_automl_classifier.id} = ${training_input.id} ;;
+#  }
+#  join: full_data {
+#    relationship: one_to_one
+ #   type: inner
+#    sql_on: ${full_data.id} = ${training_input.id} ;;
+#  }
+#}
 
 view: training_input {
   derived_table: {
