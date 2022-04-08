@@ -356,9 +356,9 @@ view: future_purchase_model_tree_xgboost {
       OPTIONS(model_type='boosted_tree_classifier',
         booster_type = 'gbtree',
         num_parallel_tree = 1,
-        max_iterations = 40,
+        max_iterations = 20,
         tree_method = 'hist',
-        early_stop = false,
+        early_stop = true,
         subsample = 0.85,
         input_label_cols = ['predicted_will_purchase']
         ) AS
@@ -687,21 +687,25 @@ view: future_purchase_model_automl_classifier {
     persist_for: "24 hours" # need to have persistence
     sql_create:
       CREATE OR REPLACE MODEL ${SQL_TABLE_NAME}
-      OPTIONS(model_type='dnn_classifier',
-        activation_fn = 'relu',
-        batch_size = 16,
-        dropout = 0.1,
-        early_stop = false,
-        hidden_units = [128, 128, 128],
-        input_label_cols = ['predicted_will_purchase'],
-        learn_rate=0.001,
-        max_iterations = 30,
-        optimizer = 'adagrad') AS
+
+      OPTIONS(model_type='kmeans',
+        num_clusters=4)
       SELECT
       * EXCEPT(id)
       FROM ${training_input.SQL_TABLE_NAME};;
   }
 }
+
+#OPTIONS(model_type='dnn_classifier',
+#        activation_fn = 'relu',
+#        batch_size = 16,
+#        dropout = 0.1,
+#        early_stop = false,
+#        hidden_units = [128, 128, 128],
+#        input_label_cols = ['predicted_will_purchase'],
+#        learn_rate=0.001,
+#        max_iterations = 30,
+#        optimizer = 'adagrad') AS
 
 explore: model_evaluation_automl_classifier {}
 view: model_evaluation_automl_classifier {
