@@ -13,10 +13,25 @@ persist_with: eats_up_data_ysance_3_default_datagroup
 
 explore: full_data {
   label: "Data and Prediction"
-  join: model_prediction {
+  join: model_prediction_log_reg {
     relationship: one_to_one
     type: inner
-    sql_on: ${model_prediction.id} = ${full_data.id} ;;
+    sql_on: ${model_prediction_log_reg.id} = ${full_data.id} ;;
+  }
+  join: model_prediction_tree_xgboost {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_prediction_tree_xgboost.id} = ${full_data.id} ;;
+  }
+  join: model_prediction_dnn_classifier {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_prediction_dnn_classifier.id} = ${full_data.id} ;;
+  }
+  join: model_prediction_automl_classifier{
+    relationship: one_to_one
+    type: inner
+    sql_on: ${model_prediction_automl_classifier.id} = ${full_data.id} ;;
   }
 }
 
@@ -80,8 +95,12 @@ view: predict_input {
   }
 }
 
-explore: future_purchase_model {}:
-view: future_purchase_model {
+##################################################
+# ML 1 : LOGISTIC REGRESSION
+##################################################
+
+explore: future_purchase_model_log_reg {}:
+view: future_purchase_model_log_reg {
   derived_table: {
     persist_for: "24 hours" # need to have persistence
     sql_create:
@@ -97,8 +116,8 @@ view: future_purchase_model {
   }
 }
 
-explore: model_evaluation {}
-view: model_evaluation {
+explore: model_evaluation_log_reg {}
+view: model_evaluation_log_reg {
   derived_table: {
     sql: SELECT
           roc_auc,
@@ -116,7 +135,7 @@ view: model_evaluation {
               WHEN accuracy > .7 THEN 'decent'
               WHEN accuracy > .6 THEN 'not great'
               ELSE 'poor' END AS model_accuracy,
-         FROM ML.EVALUATE(MODEL ${future_purchase_model.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
+         FROM ML.EVALUATE(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
   dimension: model_quality {}
   dimension: iteration {}
@@ -128,11 +147,11 @@ view: model_evaluation {
   dimension: roc_auc {type: number}
 }
 
-explore: model_prediction {}
-view: model_prediction {
+explore: model_prediction_log_reg {}
+view: model_prediction_log_reg {
   derived_table: {
     sql: SELECT * FROM ML.PREDICT(
-          MODEL ${future_purchase_model.SQL_TABLE_NAME},
+          MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},
           (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
 
@@ -173,11 +192,11 @@ view: model_prediction {
 }
 }
 
-explore: roc_curve {}
-view: roc_curve {
+explore: roc_curve_log_reg {}
+view: roc_curve_log_reg {
   derived_table: {
     sql: SELECT * FROM ml.ROC_CURVE(
-        MODEL ${future_purchase_model.SQL_TABLE_NAME},
+        MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},
         (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
   }
   dimension: threshold {
@@ -221,10 +240,10 @@ view: roc_curve {
   }
 }
 
-explore: future_purchase_model_training_info {}
-view: future_purchase_model_training_info {
+explore: future_purchase_model_training_info_log_reg {}
+view: future_purchase_model_training_info_log_reg {
   derived_table: {
-    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model.SQL_TABLE_NAME});;
+    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME});;
   }
   dimension: training_run {type: number}
   dimension: iteration {type: number}
