@@ -350,7 +350,7 @@ view: future_purchase_model_tree_xgboost {
       OPTIONS(model_type='boosted_tree_classifier',
         booster_type = 'gbtree',
         num_parallel_tree = 1,
-        max_iterations = 50,
+        max_iterations = 40,
         tree_method = 'hist',
         early_stop = false,
         subsample = 0.85,
@@ -517,7 +517,7 @@ view: future_purchase_model_dnn_classifier {
         hidden_units = [128, 128, 128],
         input_label_cols = ['predicted_will_purchase'],
         learn_rate=0.001,
-        max_iterations = 50,
+        max_iterations = 30,
         optimizer = 'adagrad') AS
       SELECT
       * EXCEPT(id)
@@ -689,7 +689,7 @@ view: future_purchase_model_automl_classifier {
         hidden_units = [128, 128, 128],
         input_label_cols = ['predicted_will_purchase'],
         learn_rate=0.001,
-        max_iterations = 50,
+        max_iterations = 30,
         optimizer = 'adagrad') AS
       SELECT
       * EXCEPT(id)
