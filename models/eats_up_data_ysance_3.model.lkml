@@ -233,8 +233,8 @@ explore: model_prediction_log_reg {}
 view: model_prediction_log_reg {
   derived_table: {
     sql: SELECT * FROM ML.PREDICT(
-          MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},
-          (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
+          MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME}),
+          (SELECT * FROM ${predict_input.SQL_TABLE_NAME});;
   }
 
   dimension: predicted_will_purchase {type:string}
@@ -310,8 +310,8 @@ view: roc_curve_log_reg {
 explore: future_purchase_model_training_info_log_reg {}
 view: future_purchase_model_training_info_log_reg {
   derived_table: {
-    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},
-          (SELECT * FROM ${training_input.SQL_TABLE_NAME}));;
+    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME}),
+          (SELECT * FROM ${training_input.SQL_TABLE_NAME});;
   }
   dimension: id {
     type: string}
@@ -400,8 +400,8 @@ view: model_evaluation_tree_xgboost {
 explore: model_prediction_tree_xgboost {}
 view: model_prediction_tree_xgboost {
   derived_table: {
-    sql: SELECT * FROM ML.PREDICT(
-          MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME},
+    sql: SELECT * FROM (ML.PREDICT(
+          MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME),
           (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
 
@@ -471,7 +471,7 @@ view: roc_curve_tree_xgboost {
 explore: future_purchase_model_training_info_tree_xgboost {}
 view: future_purchase_model_training_info_tree_xgboost {
   derived_table: {
-    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME},
+    sql: SELECT  * FROM (ml.TRAINING_INFO(MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME}),
           (SELECT * FROM ${training_input.SQL_TABLE_NAME}));;
   }
   dimension: id {
@@ -550,7 +550,7 @@ view: model_evaluation_dnn_classifier {
               WHEN accuracy > .7 THEN 'decent'
               WHEN accuracy > .6 THEN 'not great'
               ELSE 'poor' END AS model_accuracy,
-         FROM ML.EVALUATE(MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME}),(SELECT * FROM ${testing_input.SQL_TABLE_NAME}) ;;
+         FROM (ML.EVALUATE(MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME}),(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
   dimension: id {
     type: string}
@@ -567,8 +567,8 @@ view: model_evaluation_dnn_classifier {
 explore: model_prediction_dnn_classifier {}
 view: model_prediction_dnn_classifier {
   derived_table: {
-    sql: SELECT * FROM ML.PREDICT(
-          MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},
+    sql: SELECT * FROM (ML.PREDICT(
+          MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME}),
           (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
 
@@ -594,9 +594,9 @@ view: model_prediction_dnn_classifier {
 explore: roc_curve_dnn_classifier {}
 view: roc_curve_dnn_classifier {
   derived_table: {
-    sql: SELECT * FROM ml.ROC_CURVE(
+    sql: SELECT * FROM (ml.ROC_CURVE(
         MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME}),
-        (SELECT * FROM ${testing_input.SQL_TABLE_NAME});;
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
   }
   dimension: id {
     type: string}
@@ -644,7 +644,7 @@ view: roc_curve_dnn_classifier {
 explore: future_purchase_model_training_info_dnn_classifier {}
 view: future_purchase_model_training_info_dnn_classifier {
   derived_table: {
-    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},
+    sql: SELECT  * FROM (ml.TRAINING_INFO(MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME}),
           (SELECT * FROM ${training_input.SQL_TABLE_NAME}));;
   }
   dimension: id {
@@ -722,7 +722,7 @@ view: model_evaluation_automl_classifier {
               WHEN accuracy > .7 THEN 'decent'
               WHEN accuracy > .6 THEN 'not great'
               ELSE 'poor' END AS model_accuracy,
-         FROM ML.EVALUATE(MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME}),(SELECT * FROM ${testing_input.SQL_TABLE_NAME}) ;;
+         FROM (ML.EVALUATE(MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME}),(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
   dimension: id {
     type: string}
@@ -739,8 +739,8 @@ view: model_evaluation_automl_classifier {
 explore: model_prediction_automl_classifier {}
 view: model_prediction_automl_classifier {
   derived_table: {
-    sql: SELECT * FROM ML.PREDICT(
-          MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},
+    sql: SELECT * FROM (ML.PREDICT(
+          MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME}),
           (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
 
@@ -766,9 +766,9 @@ view: model_prediction_automl_classifier {
 explore: roc_curve_automl_classifier {}
 view: roc_curve_automl_classifier {
   derived_table: {
-    sql: SELECT * FROM ml.ROC_CURVE(
+    sql: SELECT * FROM (ml.ROC_CURVE(
         MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME}),
-        (SELECT * FROM ${testing_input.SQL_TABLE_NAME});;
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
   }
   dimension: id {
     type: string}
@@ -816,7 +816,7 @@ view: roc_curve_automl_classifier {
 explore: future_purchase_model_training_info_automl_classifier {}
 view: future_purchase_model_training_info_automl_classifier {
   derived_table: {
-    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},
+    sql: SELECT  * FROM (ml.TRAINING_INFO(MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME}),
           (SELECT * FROM ${training_input.SQL_TABLE_NAME}));;
   }
   dimension: id {
