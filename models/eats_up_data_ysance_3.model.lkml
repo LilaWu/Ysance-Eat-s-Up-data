@@ -689,7 +689,7 @@ view: future_purchase_model_automl_classifier {
       CREATE OR REPLACE MODEL ${SQL_TABLE_NAME}
 
       OPTIONS(model_type='kmeans',
-        num_clusters=4)
+        num_clusters=4) AS
       SELECT
       * EXCEPT(id)
       FROM ${training_input.SQL_TABLE_NAME};;
