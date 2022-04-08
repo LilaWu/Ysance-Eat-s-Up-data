@@ -1,7 +1,6 @@
 # Define the database connection to be used for this model.
 connection: "eatsupdata_ysance3"
 
-
 # Datagroups define a caching policy for an Explore. To learn more,
 # use the Quick Help panel on the right to see documentation.
 
@@ -20,6 +19,7 @@ explore: full_data {
     sql_on: ${model_prediction.id} = ${full_data.id} ;;
   }
 }
+
 
 
 view: full_data {
@@ -86,6 +86,7 @@ view: future_purchase_model {
         , labels=['Predicted_will_purchase']
         , min_rel_progress = 0.005
         , max_iterations = 40
+        , auto_class_weights=true
         ) AS
       SELECT
          * EXCEPT(id)
@@ -125,7 +126,7 @@ view: model_evaluation {
 }
 
 
-explore: model_prediction {}:
+explore: model_prediction {}
 view: model_prediction {
   derived_table: {
     sql: SELECT * FROM ML.PREDICT(
@@ -150,53 +151,103 @@ view: model_prediction {
   measure: pageviews_sum {
     type: sum
     sql: ${pageviews} ;;}
+  dimension: pk2_opportunity_id {hidden:yes}
+  dimension: pk2_date {hidden:yes}
+  dimension: result {type: number}
+  dimension: predicted_result {type: number}
+  dimension: renewal_prob {type: number sql:(SELECT prob FROM UNNEST(${TABLE}.predicted_result_probs) WHERE label=1);; value_format_name: percent_2}
+  measure: count {type:count drill_fields: [account.name, renewal_prob, predicted_result, result]}
+  measure: predicted_renewals {type:sum sql:${predicted_result};;}
+  measure: predicted_nonrenewals {type:sum sql:1-${predicted_result};;}
+  measure: ev_renewals {type:sum sql:${renewal_prob};; value_format_name:decimal_1}
+  measure: actual_renewals {type:sum sql:${result};;}
+  measure: actual_nonrenewals {type:sum sql:1-${result};;}
+  measure: false_positives {
+    type:count
+    filters: {field: predicted_result value: "1"}
+    filters: {field: result value:"0"}
+    drill_fields: [account.name, renewal_prob, predicted_result, result]
 
+}
 }
 
 
+
+explore: roc_curve {}
 view: roc_curve {
   derived_table: {
-    sql: SELECT * FROM ml.model(
-          MODEL ${future_purchase_model.SQL_TABLE_NAME},
-          TABLE ${full_data.SQL_TABLE_NAME}
-        );;
+    sql: SELECT * FROM ml.ROC_CURVE(
+        MODEL ${future_purchase_model.SQL_TABLE_NAME},
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
   }
-  dimension: threshold {type: number}
-  dimension: recall {type: number value_format_name: percent_1}
-  dimension: false_positive_rate {type: number value_format_name: percent_1}
+  dimension: threshold {
+    type: number
+    value_format_name: decimal_4
+    link: {
+      label: "Campaign List Creator"
+      url: "/dashboards/202?Customer%20Propensity%20to%20Purchase=>{{ rendered_value | encode_uri }}"
+      icon_url: "http://www.looker.com/favicon.ico"
+    }
+
+
+  }
+  dimension: recall {type: number value_format_name: percent_2}
+  dimension: false_positive_rate {type: number}
   dimension: true_positives {type: number }
   dimension: false_positives {type: number}
   dimension: true_negatives {type: number}
   dimension: false_negatives {type: number }
-  dimension: precision {type:  number value_format_name: percent_1
+  dimension: precision {
+    type:  number
+    value_format_name: percent_2
     sql:  ${true_positives} / NULLIF((${true_positives} + ${false_positives}),0);;
+    description: "Equal to true positives over all positives. Indicative of how false positives are penalized. Set high to get no false positives"
   }
-  dimension: threshold_accuracy {type: number value_format_name: percent_1
+  measure: total_false_positives {
+    type: sum
+    sql: ${false_positives} ;;
+  }
+  measure: total_true_positives {
+    type: sum
+    sql: ${true_positives} ;;
+  }
+  dimension: threshold_accuracy {
+    type: number
+    value_format_name: percent_2
     sql:  1.0*(${true_positives} + ${true_negatives}) / NULLIF((${true_positives} + ${true_negatives} + ${false_positives} + ${false_negatives}),0);;
   }
-  dimension: threshold_f1 {type: number value_format_name: percent_1
+  dimension: threshold_f1 {
+    type: number
+    value_format_name: percent_3
     sql: 2.0*${recall}*${precision} / NULLIF((${recall}+${precision}),0);;
   }
-  measure: total_false_positives {type: sum sql: ${false_positives} ;;}
-  measure: total_true_positives {type: sum sql: ${true_positives} ;;}
 }
 
 
-
-view: training_info {
+explore: future_purchase_model_training_info {}
+view: future_purchase_model_training_info {
   derived_table: {
-    sql: SELECT * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model.SQL_TABLE_NAME});;
+    sql: SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model.SQL_TABLE_NAME});;
   }
   dimension: training_run {type: number}
   dimension: iteration {type: number}
+  dimension: loss_raw {sql: ${TABLE}.loss;; type: number hidden:yes}
   dimension: eval_loss {type: number}
   dimension: duration_ms {label:"Duration (ms)" type: number}
   dimension: learning_rate {type: number}
-  measure: total_iterations {type: count}
-  measure: loss {type: sum value_format_name: decimal_2 sql: ${TABLE}.loss;; }
-  measure: total_training_time {type: sum value_format_name: decimal_1
+  measure: total_iterations {
+    type: count
+  }
+  measure: loss {
+    value_format_name: decimal_2
+    type: sum
+    sql:  ${loss_raw} ;;
+  }
+  measure: total_training_time {
+    type: sum
     label:"Total Training Time (sec)"
     sql: ${duration_ms}/1000 ;;
+    value_format_name: decimal_1
   }
   measure: average_iteration_time {
     type: average
