@@ -115,8 +115,13 @@ view: model_evaluation {
          FROM ML.EVALUATE(MODEL ${future_purchase_model.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
   dimension: model_quality {}
-  dimension: log_loss {}
-  dimension: accuracy {}
+  dimension: iteration {}
+  dimension: fi_score {}
+  dimension: recall {type: number value_format_name:percent_2}
+  dimension: accuracy {type: number value_format_name:percent_2}
+  dimension: f1_score {type: number value_format_name:percent_2}
+  dimension: log_loss {type: number}
+  dimension: roc_auc {type: number}
 }
 
 
@@ -146,4 +151,57 @@ view: model_prediction {
     type: sum
     sql: ${pageviews} ;;}
 
+}
+
+
+view: roc_curve {
+  derived_table: {
+    sql: SELECT * FROM ml.model(
+          MODEL ${future_purchase_model.SQL_TABLE_NAME},
+          TABLE ${full_data.SQL_TABLE_NAME}
+        );;
+  }
+  dimension: threshold {type: number}
+  dimension: recall {type: number value_format_name: percent_1}
+  dimension: false_positive_rate {type: number value_format_name: percent_1}
+  dimension: true_positives {type: number }
+  dimension: false_positives {type: number}
+  dimension: true_negatives {type: number}
+  dimension: false_negatives {type: number }
+  dimension: precision {type:  number value_format_name: percent_1
+    sql:  ${true_positives} / NULLIF((${true_positives} + ${false_positives}),0);;
+  }
+  dimension: threshold_accuracy {type: number value_format_name: percent_1
+    sql:  1.0*(${true_positives} + ${true_negatives}) / NULLIF((${true_positives} + ${true_negatives} + ${false_positives} + ${false_negatives}),0);;
+  }
+  dimension: threshold_f1 {type: number value_format_name: percent_1
+    sql: 2.0*${recall}*${precision} / NULLIF((${recall}+${precision}),0);;
+  }
+  measure: total_false_positives {type: sum sql: ${false_positives} ;;}
+  measure: total_true_positives {type: sum sql: ${true_positives} ;;}
+}
+
+
+
+view: training_info {
+  derived_table: {
+    sql: SELECT * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model.SQL_TABLE_NAME});;
+  }
+  dimension: training_run {type: number}
+  dimension: iteration {type: number}
+  dimension: eval_loss {type: number}
+  dimension: duration_ms {label:"Duration (ms)" type: number}
+  dimension: learning_rate {type: number}
+  measure: total_iterations {type: count}
+  measure: loss {type: sum value_format_name: decimal_2 sql: ${TABLE}.loss;; }
+  measure: total_training_time {type: sum value_format_name: decimal_1
+    label:"Total Training Time (sec)"
+    sql: ${duration_ms}/1000 ;;
+  }
+  measure: average_iteration_time {
+    type: average
+    label:"Average Iteration Time (sec)"
+    sql: ${duration_ms}/1000 ;;
+    value_format_name: decimal_1
+  }
 }
