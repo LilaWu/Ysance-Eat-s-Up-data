@@ -34,7 +34,7 @@ view: full_data {
         FROM
           `bigquery-public-data.google_analytics_sample.ga_sessions_*`
         WHERE
-          _TABLE_SUFFIX BETWEEN '20160801' AND '20170801'
+          _TABLE_SUFFIX BETWEEN '20160801' AND '20170401'
         ;;
   }
 
@@ -62,14 +62,21 @@ view: full_data {
 explore: training_input {}
 view: training_input {
   derived_table: {
-    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20160801' AND '20170630';;
+    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20160801' AND '20170130';;
   }
 }
 
 explore: testing_input {}
 view: testing_input {
   derived_table: {
-    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20170701' AND '20170801' ;;
+    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20170201' AND '20170228' ;;
+  }
+}
+
+explore: predict_input {}
+view: predict_input {
+  derived_table: {
+    sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20170301' AND '20170401' ;;
   }
 }
 
@@ -126,7 +133,7 @@ view: model_prediction {
   derived_table: {
     sql: SELECT * FROM ML.PREDICT(
           MODEL ${future_purchase_model.SQL_TABLE_NAME},
-          (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
+          (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
 
   dimension: predicted_will_purchase {type:string}
@@ -294,11 +301,7 @@ view: model_evaluation_tree_xgboost {
          FROM ML.EVALUATE(MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
   dimension: model_quality {}
-  dimension: iteration {}
-  dimension: fi_score {}
-  dimension: recall {type: number value_format_name:percent_2}
   dimension: accuracy {type: number value_format_name:percent_2}
-  dimension: f1_score {type: number value_format_name:percent_2}
   dimension: log_loss {type: number}
   dimension: roc_auc {type: number}
 }
@@ -308,7 +311,7 @@ view: model_prediction_tree_xgboost {
   derived_table: {
     sql: SELECT * FROM ML.PREDICT(
           MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME},
-          (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
+          (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
 
   dimension: predicted_will_purchase {type:string}
@@ -363,7 +366,6 @@ view: roc_curve_tree_xgboost {
       icon_url: "http://www.looker.com/favicon.ico"
     }
   }
-  dimension: recall {type: number value_format_name: percent_2}
   dimension: false_positive_rate {type: number}
   dimension: true_positives {type: number }
   dimension: false_positives {type: number}
@@ -387,11 +389,6 @@ view: roc_curve_tree_xgboost {
     type: number
     value_format_name: percent_2
     sql:  1.0*(${true_positives} + ${true_negatives}) / NULLIF((${true_positives} + ${true_negatives} + ${false_positives} + ${false_negatives}),0);;
-  }
-  dimension: threshold_f1 {
-    type: number
-    value_format_name: percent_3
-    sql: 2.0*${recall}*${precision} / NULLIF((${recall}+${precision}),0);;
   }
 }
 
@@ -458,7 +455,7 @@ view: model_prediction_dnn_classifier {
   derived_table: {
     sql: SELECT * FROM ML.PREDICT(
           MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},
-          (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
+          (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
 
   dimension: predicted_will_purchase {type:string}
@@ -546,7 +543,7 @@ view: roc_curve_dnn_classifier {
 }
 
 ##################################################
-# ML 3 : DNN CLASSIFIER
+# ML 3 : AUTOML CLASSIFIER
 ##################################################
 
 explore: future_purchase_model_automl_classifier {}:
@@ -607,7 +604,7 @@ view: model_prediction_automl_classifier {
   derived_table: {
     sql: SELECT * FROM ML.PREDICT(
           MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},
-          (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
+          (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
 
   dimension: predicted_will_purchase {type:string}
