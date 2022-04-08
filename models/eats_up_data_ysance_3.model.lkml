@@ -400,8 +400,8 @@ explore: model_prediction_tree_xgboost {}
 view: model_prediction_tree_xgboost {
   derived_table: {
     sql: (SELECT * FROM ML.PREDICT(
-          MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME),
-          (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
+          MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME,
+          (SELECT * FROM ${predict_input.SQL_TABLE_NAME})));;
   }
 
   dimension: predicted_will_purchase {type:string}
