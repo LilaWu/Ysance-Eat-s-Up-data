@@ -214,7 +214,7 @@ view: model_evaluation_log_reg {
               WHEN accuracy > .7 THEN 'decent'
               WHEN accuracy > .6 THEN 'not great'
               ELSE 'poor' END AS model_accuracy,
-         FROM (ML.EVALUATE(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME}),(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
+         FROM (ML.EVALUATE(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME}))) ;;
   }
   dimension: id {
     type: string}
@@ -232,8 +232,8 @@ explore: model_prediction_log_reg {}
 view: model_prediction_log_reg {
   derived_table: {
     sql: SELECT * FROM ML.PREDICT(
-          MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME}),
-          (SELECT * FROM ${predict_input.SQL_TABLE_NAME});;
+          MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},
+          (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
 
   dimension: predicted_will_purchase {type:string}
