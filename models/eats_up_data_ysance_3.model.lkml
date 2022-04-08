@@ -252,24 +252,7 @@ view: model_prediction_log_reg {
   measure: pageviews_sum {
     type: sum
     sql: ${pageviews} ;;}
-  dimension: pk2_opportunity_id {hidden:yes}
-  dimension: pk2_date {hidden:yes}
-  dimension: result {type: number}
-  dimension: predicted_result {type: number}
-  dimension: renewal_prob {type: number sql:(SELECT prob FROM UNNEST(${TABLE}.predicted_result_probs) WHERE label=1);; value_format_name: percent_2}
-  measure: count {type:count drill_fields: [account.name, renewal_prob, predicted_result, result]}
-  measure: predicted_renewals {type:sum sql:${predicted_result};;}
-  measure: predicted_nonrenewals {type:sum sql:1-${predicted_result};;}
-  measure: ev_renewals {type:sum sql:${renewal_prob};; value_format_name:decimal_1}
-  measure: actual_renewals {type:sum sql:${result};;}
-  measure: actual_nonrenewals {type:sum sql:1-${result};;}
-  measure: false_positives {
-    type:count
-    filters: {field: predicted_result value: "1"}
-    filters: {field: result value:"0"}
-    drill_fields: [account.name, renewal_prob, predicted_result, result]
 
-}
 }
 
 explore: roc_curve_log_reg {}
@@ -371,7 +354,7 @@ view: future_purchase_model_tree_xgboost {
       OPTIONS(model_type='boosted_tree_classifier',
         booster_type = 'gbtree',
         num_parallel_tree = 1,
-        max_iterations = 50,
+        max_iterations = 40,
         tree_method = 'hist',
         early_stop = false,
         subsample = 0.85,
@@ -437,23 +420,6 @@ view: model_prediction_tree_xgboost {
   measure: pageviews_sum {
     type: sum
     sql: ${pageviews} ;;}
-  dimension: pk2_opportunity_id {hidden:yes}
-  dimension: pk2_date {hidden:yes}
-  dimension: result {type: number}
-  dimension: predicted_result {type: number}
-  dimension: renewal_prob {type: number sql:(SELECT prob FROM UNNEST(${TABLE}.predicted_result_probs) WHERE label=1);; value_format_name: percent_2}
-  measure: count {type:count drill_fields: [account.name, renewal_prob, predicted_result, result]}
-  measure: predicted_renewals {type:sum sql:${predicted_result};;}
-  measure: predicted_nonrenewals {type:sum sql:1-${predicted_result};;}
-  measure: ev_renewals {type:sum sql:${renewal_prob};; value_format_name:decimal_1}
-  measure: actual_renewals {type:sum sql:${result};;}
-  measure: actual_nonrenewals {type:sum sql:1-${result};;}
-  measure: false_positives {
-    type:count
-    filters: {field: predicted_result value: "1"}
-    filters: {field: result value:"0"}
-    drill_fields: [account.name, renewal_prob, predicted_result, result]
-  }
 }
 
 explore: roc_curve_tree_xgboost {}
@@ -555,7 +521,7 @@ view: future_purchase_model_dnn_classifier {
         hidden_units = [128, 128, 128],
         input_label_cols = ['predicted_will_purchase'],
         learn_rate=0.001,
-        max_iterations = 50,
+        max_iterations = 30,
         optimizer = 'adagrad') AS
       SELECT
       * EXCEPT(id)
@@ -621,23 +587,6 @@ view: model_prediction_dnn_classifier {
   measure: pageviews_sum {
     type: sum
     sql: ${pageviews} ;;}
-  dimension: pk2_opportunity_id {hidden:yes}
-  dimension: pk2_date {hidden:yes}
-  dimension: result {type: number}
-  dimension: predicted_result {type: number}
-  dimension: renewal_prob {type: number sql:(SELECT prob FROM UNNEST(${TABLE}.predicted_result_probs) WHERE label=1);; value_format_name: percent_2}
-  measure: count {type:count drill_fields: [account.name, renewal_prob, predicted_result, result]}
-  measure: predicted_renewals {type:sum sql:${predicted_result};;}
-  measure: predicted_nonrenewals {type:sum sql:1-${predicted_result};;}
-  measure: ev_renewals {type:sum sql:${renewal_prob};; value_format_name:decimal_1}
-  measure: actual_renewals {type:sum sql:${result};;}
-  measure: actual_nonrenewals {type:sum sql:1-${result};;}
-  measure: false_positives {
-    type:count
-    filters: {field: predicted_result value: "1"}
-    filters: {field: result value:"0"}
-    drill_fields: [account.name, renewal_prob, predicted_result, result]
-  }
 }
 
 explore: roc_curve_dnn_classifier {}
@@ -726,8 +675,6 @@ view: future_purchase_model_training_info_dnn_classifier {
   }
 }
 
-
-
 ##################################################
 # ML 3 : AUTOML CLASSIFIER
 ##################################################
@@ -746,7 +693,7 @@ view: future_purchase_model_automl_classifier {
         hidden_units = [128, 128, 128],
         input_label_cols = ['predicted_will_purchase'],
         learn_rate=0.001,
-        max_iterations = 50,
+        max_iterations = 30,
         optimizer = 'adagrad') AS
       SELECT
       * EXCEPT(id)
@@ -812,23 +759,6 @@ view: model_prediction_automl_classifier {
   measure: pageviews_sum {
     type: sum
     sql: ${pageviews} ;;}
-  dimension: pk2_opportunity_id {hidden:yes}
-  dimension: pk2_date {hidden:yes}
-  dimension: result {type: number}
-  dimension: predicted_result {type: number}
-  dimension: renewal_prob {type: number sql:(SELECT prob FROM UNNEST(${TABLE}.predicted_result_probs) WHERE label=1);; value_format_name: percent_2}
-  measure: count {type:count drill_fields: [account.name, renewal_prob, predicted_result, result]}
-  measure: predicted_renewals {type:sum sql:${predicted_result};;}
-  measure: predicted_nonrenewals {type:sum sql:1-${predicted_result};;}
-  measure: ev_renewals {type:sum sql:${renewal_prob};; value_format_name:decimal_1}
-  measure: actual_renewals {type:sum sql:${result};;}
-  measure: actual_nonrenewals {type:sum sql:1-${result};;}
-  measure: false_positives {
-    type:count
-    filters: {field: predicted_result value: "1"}
-    filters: {field: result value:"0"}
-    drill_fields: [account.name, renewal_prob, predicted_result, result]
-  }
 }
 
 explore: roc_curve_automl_classifier {}
