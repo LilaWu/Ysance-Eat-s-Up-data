@@ -139,7 +139,9 @@ view: testing_input {
   derived_table: {
     sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20170201' AND '20170228' ;;
   }
-  dimension: id {}
+  dimension: id {
+    type: string
+  }
 }
 
 explore: predict_input {
