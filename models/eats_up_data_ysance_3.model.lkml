@@ -81,6 +81,9 @@ view: training_input {
     sql: SELECT * FROM ${full_data.SQL_TABLE_NAME} WHERE date BETWEEN '20160801' AND '20170130';;
   }
   dimension: id {}
+  filter: date {
+    type: string
+  }
 }
 
 explore: testing_input {
