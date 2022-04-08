@@ -215,7 +215,7 @@ view: model_evaluation_log_reg {
               WHEN accuracy > .7 THEN 'decent'
               WHEN accuracy > .6 THEN 'not great'
               ELSE 'poor' END AS model_accuracy,
-         FROM ML.EVALUATE(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
+         FROM ML.EVALUATE(MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME}),(SELECT * FROM ${testing_input.SQL_TABLE_NAME}) ;;
   }
   dimension: id {
     type: string}
@@ -261,8 +261,8 @@ explore: roc_curve_log_reg {}
 view: roc_curve_log_reg {
   derived_table: {
     sql: SELECT * FROM ml.ROC_CURVE(
-        MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME},
-        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
+        MODEL ${future_purchase_model_log_reg.SQL_TABLE_NAME}),
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME});;
   }
   dimension: threshold {
     type: number
@@ -387,7 +387,7 @@ view: model_evaluation_tree_xgboost {
               WHEN accuracy > .7 THEN 'decent'
               WHEN accuracy > .6 THEN 'not great'
               ELSE 'poor' END AS model_accuracy,
-         FROM ML.EVALUATE(MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
+         FROM (ML.EVALUATE(MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME}),(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
   }
   dimension: id {
     type: string}
@@ -428,8 +428,8 @@ explore: roc_curve_tree_xgboost {}
 view: roc_curve_tree_xgboost {
   derived_table: {
     sql: SELECT * FROM ml.ROC_CURVE(
-        MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME},
-        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
+        MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME}),
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME});;
   }
   dimension: id {
     type: string}
@@ -550,7 +550,7 @@ view: model_evaluation_dnn_classifier {
               WHEN accuracy > .7 THEN 'decent'
               WHEN accuracy > .6 THEN 'not great'
               ELSE 'poor' END AS model_accuracy,
-         FROM ML.EVALUATE(MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
+         FROM ML.EVALUATE(MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME}),(SELECT * FROM ${testing_input.SQL_TABLE_NAME}) ;;
   }
   dimension: id {
     type: string}
@@ -595,8 +595,8 @@ explore: roc_curve_dnn_classifier {}
 view: roc_curve_dnn_classifier {
   derived_table: {
     sql: SELECT * FROM ml.ROC_CURVE(
-        MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},
-        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
+        MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME}),
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME});;
   }
   dimension: id {
     type: string}
@@ -722,7 +722,7 @@ view: model_evaluation_automl_classifier {
               WHEN accuracy > .7 THEN 'decent'
               WHEN accuracy > .6 THEN 'not great'
               ELSE 'poor' END AS model_accuracy,
-         FROM ML.EVALUATE(MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
+         FROM ML.EVALUATE(MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME}),(SELECT * FROM ${testing_input.SQL_TABLE_NAME}) ;;
   }
   dimension: id {
     type: string}
@@ -767,8 +767,8 @@ explore: roc_curve_automl_classifier {}
 view: roc_curve_automl_classifier {
   derived_table: {
     sql: SELECT * FROM ml.ROC_CURVE(
-        MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},
-        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
+        MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME}),
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME});;
   }
   dimension: id {
     type: string}
