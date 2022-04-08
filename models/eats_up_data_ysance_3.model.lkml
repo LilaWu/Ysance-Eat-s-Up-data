@@ -20,8 +20,6 @@ explore: full_data {
   }
 }
 
-
-
 view: full_data {
   derived_table:{
     sql:
@@ -59,7 +57,6 @@ view: full_data {
     type: count_distinct
     sql: ${id} ;;
   }
-
 }
 
 explore: training_input {}
@@ -86,8 +83,7 @@ view: future_purchase_model {
         , labels=['predicted_will_purchase']
         , min_rel_progress = 0.005
         , max_iterations = 40
-        , auto_class_weights=true
-        ) AS
+        , auto_class_weights=true) AS
       SELECT
          * EXCEPT(id)
       FROM ${training_input.SQL_TABLE_NAME};;
@@ -124,7 +120,6 @@ view: model_evaluation {
   dimension: log_loss {type: number}
   dimension: roc_auc {type: number}
 }
-
 
 explore: model_prediction {}
 view: model_prediction {
@@ -186,8 +181,6 @@ view: roc_curve {
       url: "/dashboards/202?Customer%20Propensity%20to%20Purchase=>{{ rendered_value | encode_uri }}"
       icon_url: "http://www.looker.com/favicon.ico"
     }
-
-
   }
   dimension: recall {type: number value_format_name: percent_2}
   dimension: false_positive_rate {type: number}
@@ -220,7 +213,6 @@ view: roc_curve {
     sql: 2.0*${recall}*${precision} / NULLIF((${recall}+${precision}),0);;
   }
 }
-
 
 explore: future_purchase_model_training_info {}
 view: future_purchase_model_training_info {
@@ -352,7 +344,6 @@ view: model_prediction_tree_xgboost {
     filters: {field: predicted_result value: "1"}
     filters: {field: result value:"0"}
     drill_fields: [account.name, renewal_prob, predicted_result, result]
-
   }
 }
 
@@ -371,8 +362,305 @@ view: roc_curve_tree_xgboost {
       url: "/dashboards/202?Customer%20Propensity%20to%20Purchase=>{{ rendered_value | encode_uri }}"
       icon_url: "http://www.looker.com/favicon.ico"
     }
+  }
+  dimension: recall {type: number value_format_name: percent_2}
+  dimension: false_positive_rate {type: number}
+  dimension: true_positives {type: number }
+  dimension: false_positives {type: number}
+  dimension: true_negatives {type: number}
+  dimension: false_negatives {type: number }
+  dimension: precision {
+    type:  number
+    value_format_name: percent_2
+    sql:  ${true_positives} / NULLIF((${true_positives} + ${false_positives}),0);;
+    description: "Equal to true positives over all positives. Indicative of how false positives are penalized. Set high to get no false positives"
+  }
+  measure: total_false_positives {
+    type: sum
+    sql: ${false_positives} ;;
+  }
+  measure: total_true_positives {
+    type: sum
+    sql: ${true_positives} ;;
+  }
+  dimension: threshold_accuracy {
+    type: number
+    value_format_name: percent_2
+    sql:  1.0*(${true_positives} + ${true_negatives}) / NULLIF((${true_positives} + ${true_negatives} + ${false_positives} + ${false_negatives}),0);;
+  }
+  dimension: threshold_f1 {
+    type: number
+    value_format_name: percent_3
+    sql: 2.0*${recall}*${precision} / NULLIF((${recall}+${precision}),0);;
+  }
+}
 
 
+##################################################
+# ML 3 : DNN CLASSIFIER
+##################################################
+
+explore: future_purchase_model_dnn_classifier {}:
+view: future_purchase_model_dnn_classifier {
+  derived_table: {
+    persist_for: "24 hours" # need to have persistence
+    sql_create:
+      CREATE OR REPLACE MODEL ${SQL_TABLE_NAME}
+      OPTIONS(model_type='dnn_classifier',
+        activation_fn = 'relu',
+        batch_size = 16,
+        dropout = 0.1,
+        early_stop = false,
+        hidden_units = [128, 128, 128],
+        input_label_cols = ['predicted_will_purchase'],
+        learn_rate=0.001,
+        max_iterations = 50,
+        optimizer = 'adagrad') AS
+      SELECT
+      * EXCEPT(id)
+      FROM ${training_input.SQL_TABLE_NAME};;
+  }
+}
+
+explore: model_evaluation_dnn_classifier {}
+view: model_evaluation_dnn_classifier {
+  derived_table: {
+    sql: SELECT
+          roc_auc,
+            CASE
+              WHEN roc_auc > .9 THEN 'good'
+              WHEN roc_auc > .8 THEN 'fair'
+              WHEN roc_auc > .7 THEN 'decent'
+              WHEN roc_auc > .6 THEN 'not great'
+              ELSE 'poor' END AS model_quality,
+          log_loss,
+          accuracy,
+            CASE
+              WHEN accuracy > .9 THEN 'good'
+              WHEN accuracy > .8 THEN 'fair'
+              WHEN accuracy > .7 THEN 'decent'
+              WHEN accuracy > .6 THEN 'not great'
+              ELSE 'poor' END AS model_accuracy,
+         FROM ML.EVALUATE(MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
+  }
+  dimension: model_quality {}
+  dimension: iteration {}
+  dimension: fi_score {}
+  dimension: recall {type: number value_format_name:percent_2}
+  dimension: accuracy {type: number value_format_name:percent_2}
+  dimension: f1_score {type: number value_format_name:percent_2}
+  dimension: log_loss {type: number}
+  dimension: roc_auc {type: number}
+}
+
+explore: model_prediction_dnn_classifier {}
+view: model_prediction_dnn_classifier {
+  derived_table: {
+    sql: SELECT * FROM ML.PREDICT(
+          MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},
+          (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
+  }
+
+  dimension: predicted_will_purchase {type:string}
+  dimension: id {
+    type: string}
+  dimension: country {
+    type:string
+    map_layer_name: countries
+  }
+  dimension: os {}
+  dimension: is_mobile {}
+  measure: id_count{
+    type: count_distinct
+    sql: ${id} ;;
+  }
+  dimension: pageviews {}
+  measure: pageviews_sum {
+    type: sum
+    sql: ${pageviews} ;;}
+  dimension: pk2_opportunity_id {hidden:yes}
+  dimension: pk2_date {hidden:yes}
+  dimension: result {type: number}
+  dimension: predicted_result {type: number}
+  dimension: renewal_prob {type: number sql:(SELECT prob FROM UNNEST(${TABLE}.predicted_result_probs) WHERE label=1);; value_format_name: percent_2}
+  measure: count {type:count drill_fields: [account.name, renewal_prob, predicted_result, result]}
+  measure: predicted_renewals {type:sum sql:${predicted_result};;}
+  measure: predicted_nonrenewals {type:sum sql:1-${predicted_result};;}
+  measure: ev_renewals {type:sum sql:${renewal_prob};; value_format_name:decimal_1}
+  measure: actual_renewals {type:sum sql:${result};;}
+  measure: actual_nonrenewals {type:sum sql:1-${result};;}
+  measure: false_positives {
+    type:count
+    filters: {field: predicted_result value: "1"}
+    filters: {field: result value:"0"}
+    drill_fields: [account.name, renewal_prob, predicted_result, result]
+  }
+}
+
+explore: roc_curve_dnn_classifier {}
+view: roc_curve_dnn_classifier {
+  derived_table: {
+    sql: SELECT * FROM ml.ROC_CURVE(
+        MODEL ${future_purchase_model_dnn_classifier.SQL_TABLE_NAME},
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
+  }
+  dimension: threshold {
+    type: number
+    value_format_name: decimal_4
+    link: {
+      label: "Campaign List Creator"
+      url: "/dashboards/202?Customer%20Propensity%20to%20Purchase=>{{ rendered_value | encode_uri }}"
+      icon_url: "http://www.looker.com/favicon.ico"
+    }
+  }
+  dimension: recall {type: number value_format_name: percent_2}
+  dimension: false_positive_rate {type: number}
+  dimension: true_positives {type: number }
+  dimension: false_positives {type: number}
+  dimension: true_negatives {type: number}
+  dimension: false_negatives {type: number }
+  dimension: precision {
+    type:  number
+    value_format_name: percent_2
+    sql:  ${true_positives} / NULLIF((${true_positives} + ${false_positives}),0);;
+    description: "Equal to true positives over all positives. Indicative of how false positives are penalized. Set high to get no false positives"
+  }
+  measure: total_false_positives {
+    type: sum
+    sql: ${false_positives} ;;
+  }
+  measure: total_true_positives {
+    type: sum
+    sql: ${true_positives} ;;
+  }
+  dimension: threshold_accuracy {
+    type: number
+    value_format_name: percent_2
+    sql:  1.0*(${true_positives} + ${true_negatives}) / NULLIF((${true_positives} + ${true_negatives} + ${false_positives} + ${false_negatives}),0);;
+  }
+  dimension: threshold_f1 {
+    type: number
+    value_format_name: percent_3
+    sql: 2.0*${recall}*${precision} / NULLIF((${recall}+${precision}),0);;
+  }
+}
+
+##################################################
+# ML 3 : DNN CLASSIFIER
+##################################################
+
+explore: future_purchase_model_automl_classifier {}:
+view: future_purchase_model_automl_classifier {
+  derived_table: {
+    persist_for: "24 hours" # need to have persistence
+    sql_create:
+      CREATE OR REPLACE MODEL ${SQL_TABLE_NAME}
+      OPTIONS(model_type='dnn_classifier',
+        activation_fn = 'relu',
+        batch_size = 16,
+        dropout = 0.1,
+        early_stop = false,
+        hidden_units = [128, 128, 128],
+        input_label_cols = ['predicted_will_purchase'],
+        learn_rate=0.001,
+        max_iterations = 50,
+        optimizer = 'adagrad') AS
+      SELECT
+      * EXCEPT(id)
+      FROM ${training_input.SQL_TABLE_NAME};;
+  }
+}
+
+explore: model_evaluation_automl_classifier {}
+view: model_evaluation_automl_classifier {
+  derived_table: {
+    sql: SELECT
+          roc_auc,
+            CASE
+              WHEN roc_auc > .9 THEN 'good'
+              WHEN roc_auc > .8 THEN 'fair'
+              WHEN roc_auc > .7 THEN 'decent'
+              WHEN roc_auc > .6 THEN 'not great'
+              ELSE 'poor' END AS model_quality,
+          log_loss,
+          accuracy,
+            CASE
+              WHEN accuracy > .9 THEN 'good'
+              WHEN accuracy > .8 THEN 'fair'
+              WHEN accuracy > .7 THEN 'decent'
+              WHEN accuracy > .6 THEN 'not great'
+              ELSE 'poor' END AS model_accuracy,
+         FROM ML.EVALUATE(MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},(SELECT * FROM ${testing_input.SQL_TABLE_NAME})) ;;
+  }
+  dimension: model_quality {}
+  dimension: iteration {}
+  dimension: fi_score {}
+  dimension: recall {type: number value_format_name:percent_2}
+  dimension: accuracy {type: number value_format_name:percent_2}
+  dimension: f1_score {type: number value_format_name:percent_2}
+  dimension: log_loss {type: number}
+  dimension: roc_auc {type: number}
+}
+
+explore: model_prediction_automl_classifier {}
+view: model_prediction_automl_classifier {
+  derived_table: {
+    sql: SELECT * FROM ML.PREDICT(
+          MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},
+          (SELECT * FROM ${full_data.SQL_TABLE_NAME}));;
+  }
+
+  dimension: predicted_will_purchase {type:string}
+  dimension: id {
+    type: string}
+  dimension: country {
+    type:string
+    map_layer_name: countries
+  }
+  dimension: os {}
+  dimension: is_mobile {}
+  measure: id_count{
+    type: count_distinct
+    sql: ${id} ;;
+  }
+  dimension: pageviews {}
+  measure: pageviews_sum {
+    type: sum
+    sql: ${pageviews} ;;}
+  dimension: pk2_opportunity_id {hidden:yes}
+  dimension: pk2_date {hidden:yes}
+  dimension: result {type: number}
+  dimension: predicted_result {type: number}
+  dimension: renewal_prob {type: number sql:(SELECT prob FROM UNNEST(${TABLE}.predicted_result_probs) WHERE label=1);; value_format_name: percent_2}
+  measure: count {type:count drill_fields: [account.name, renewal_prob, predicted_result, result]}
+  measure: predicted_renewals {type:sum sql:${predicted_result};;}
+  measure: predicted_nonrenewals {type:sum sql:1-${predicted_result};;}
+  measure: ev_renewals {type:sum sql:${renewal_prob};; value_format_name:decimal_1}
+  measure: actual_renewals {type:sum sql:${result};;}
+  measure: actual_nonrenewals {type:sum sql:1-${result};;}
+  measure: false_positives {
+    type:count
+    filters: {field: predicted_result value: "1"}
+    filters: {field: result value:"0"}
+    drill_fields: [account.name, renewal_prob, predicted_result, result]
+  }
+}
+
+explore: roc_curve_automl_classifier {}
+view: roc_curve_automl_classifier {
+  derived_table: {
+    sql: SELECT * FROM ml.ROC_CURVE(
+        MODEL ${future_purchase_model_automl_classifier.SQL_TABLE_NAME},
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
+  }
+  dimension: threshold {
+    type: number
+    value_format_name: decimal_4
+    link: {
+      label: "Campaign List Creator"
+      url: "/dashboards/202?Customer%20Propensity%20to%20Purchase=>{{ rendered_value | encode_uri }}"
+      icon_url: "http://www.looker.com/favicon.ico"
+    }
   }
   dimension: recall {type: number value_format_name: percent_2}
   dimension: false_positive_rate {type: number}
