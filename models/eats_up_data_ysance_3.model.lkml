@@ -399,7 +399,7 @@ view: model_evaluation_tree_xgboost {
 explore: model_prediction_tree_xgboost {}
 view: model_prediction_tree_xgboost {
   derived_table: {
-    sql: SELECT * FROM (ML.PREDICT(
+    sql: (SELECT * FROM ML.PREDICT(
           MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME),
           (SELECT * FROM ${predict_input.SQL_TABLE_NAME}));;
   }
@@ -426,9 +426,9 @@ view: model_prediction_tree_xgboost {
 explore: roc_curve_tree_xgboost {}
 view: roc_curve_tree_xgboost {
   derived_table: {
-    sql: SELECT * FROM ml.ROC_CURVE(
+    sql: (SELECT * FROM ml.ROC_CURVE(
         MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME}),
-        (SELECT * FROM ${testing_input.SQL_TABLE_NAME});;
+        (SELECT * FROM ${testing_input.SQL_TABLE_NAME}));;
   }
   dimension: id {
     type: string}
@@ -470,7 +470,7 @@ view: roc_curve_tree_xgboost {
 explore: future_purchase_model_training_info_tree_xgboost {}
 view: future_purchase_model_training_info_tree_xgboost {
   derived_table: {
-    sql: SELECT  * FROM (ml.TRAINING_INFO(MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME}),
+    sql: (SELECT  * FROM ml.TRAINING_INFO(MODEL ${future_purchase_model_tree_xgboost.SQL_TABLE_NAME}),
           (SELECT * FROM ${training_input.SQL_TABLE_NAME}));;
   }
   dimension: id {
